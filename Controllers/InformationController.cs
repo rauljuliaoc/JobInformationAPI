@@ -116,6 +116,29 @@ namespace JobInformationAPI.Controllers
             return NoContent();
         }
 
+        [HttpGet("GetCountryInfo/{countryId}")]
+        public async Task<ActionResult<IEnumerable<Information>>> GetCountryInfo(int countryId)
+        {
+            if(_context.Information== null)
+            {
+                return NotFound();
+            }
+
+            var information = await _context.Information
+                .Include(i => i.Country)
+                .Select(i => new Information
+                {
+                    Name = i.Name,
+                    Id = i.Id,
+                    CountryId = i.CountryId,
+                    Country= i.Country,
+                })
+                .Where(i => i.CountryId == countryId)
+                .ToListAsync();
+
+            return information == null ? NotFound() : information;
+        }
+
         private bool InformationExists(int id)
         {
             return (_context.Information?.Any(e => e.Id == id)).GetValueOrDefault();

@@ -116,8 +116,8 @@ namespace JobInformationAPI.Controllers
             return NoContent();
         }
 
-        [HttpGet("GetCountryInfo/{countryId}")]
-        public async Task<ActionResult<IEnumerable<Information>>> GetCountryInfo(int countryId)
+        [HttpGet("GetUserByCountryId/{countryId}")]
+        public async Task<ActionResult<IEnumerable<Information>>> GetUserByCountryId(int countryId)
         {
             if(_context.Information== null)
             {
@@ -131,9 +131,33 @@ namespace JobInformationAPI.Controllers
                     Name = i.Name,
                     Id = i.Id,
                     CountryId = i.CountryId,
-                    Country= i.Country,
+                    Country=  new CountryInfo { CountryName = i.Country.CountryName},
                 })
                 .Where(i => i.CountryId == countryId)
+                .ToListAsync();
+
+            return information == null ? NotFound() : information;
+        }
+
+
+        [HttpGet("GetUsersByJobId/{jobId}")]
+        public async Task<ActionResult<IEnumerable<Information>>> GetUsersByJobId(int jobId)
+        {
+            if (_context.Information == null)
+            {
+                return NotFound();
+            }
+
+            var information = await _context.Information
+                .Include(i => i.Job)
+                .Select(i => new Information
+                {
+                    Name = i.Name,
+                    Id = i.Id,
+                    JobId = i.JobId,
+                    Job = new JobInformation { JobName = i.Job.JobName},
+                })
+                .Where(i => i.JobId == jobId)
                 .ToListAsync();
 
             return information == null ? NotFound() : information;
